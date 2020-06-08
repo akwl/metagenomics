@@ -1,72 +1,22 @@
-setwd("C:/Users/Dell/OneDrive - University College London/Courses/BIOC0023 Specialist Research Project in Metagenomics/Submissions & Assessments/Essay/Data Analysis")
-
-library(scales)
 library(ggplot2)
+library(scales)
 library(reshape2)
 library(ggrepel)
 library(RColorBrewer)
 library(rprintf)
 library(ggpubr)
 library(gridExtra)
-library("plot3D")
-library("plot3Drgl")
-library("plotly")
+library(plot3D)
+library(plot3Drgl)
+library(plotly)
 
-#Level 3
+#Level 3 (classes)
 level_3 = read.csv("level-3.csv")
 classes = as.matrix(level_3[,-c(1,26:30)])
-#classes = apply(as.matrix(level_3[,-c(1,26:30)]), 2, rescale)
-write.csv(classes, "level-3-rescaled.csv")
-write.csv(cor(classes), "heatmap.csv")
-#Cor between classes
+#Correlations between classes
 par(oma = c(13,0,0,13), xpd = TRUE)
-#svg("heatmap.svg")
 heatmap(cor(classes), scale = "none", col = rev(colorRampPalette(brewer.pal(11, "RdBu"))(256)), cexRow = 0.7, cexCol = 0.7, margins = c(7.5,7.5)) 
 legend(x = "bottomright", inset = c(-0.7,-0.55), legend = c(1, 0, -1), fill=colorRampPalette(brewer.pal(11, "RdBu"))(3), cex = 0.5)# , inset = c(0, -2)
-dev.off()
-#Cor between samples
-heatmap(cor(t(classes)), scale = "none", col = rev(colorRampPalette(brewer.pal(11, "RdBu"))(256)))
-legend(x="right", legend=c(-1,0,1), fill=rev(colorRampPalette(brewer.pal(11, "RdBu"))(3)))
-
-'
-#Level 6
-level_6 = read.csv("level-6.csv")
-genuses = level_6[,-c(1,72,73,76)]
-write.csv(cor(genuses), "heatmap.csv")
-'
-
-head(classes)
-
-#Relative abundances before and after oil pulling
-before = classes[which(level_3[,"Oil.Pulling...Before..2..or.After..1.."] == 2),]
-after = classes[which(level_3[,"Oil.Pulling...Before..2..or.After..1.."] == 1),]
-
-before_sum = rowSums(before)
-after_sum = rowSums(after)
-all_abundances_sum_ba = matrix(data = NA, nrow = length(before_sum), ncol = 2)
-colnames(all_abundances_sum_ba) = c("Before", "After")
-all_abundances_sum_ba[,1] = before_sum
-all_abundances_sum_ba[,2] = c(after_sum, rep(NA, length(before_sum)-length(after_sum)))
-na.pass(all_abundances_sum_ba)
-
-all_abundances_sum_ba_melted = melt(all_abundances_sum_ba)
-
-ggplot(all_abundances_sum_ba_melted, aes(x=value, fill=Var2, colour=Var2)) + 
-  geom_density(alpha=0.25) + 
-  labs(x = "Relative abundance", y = "Frequency") +
-  theme(legend.title = element_blank())
-
-wilcox.test(all_abundances_sum_ba[,1], all_abundances_sum_ba[,2], paired = FALSE)$p.value
-
-max_mean_min_ba_melted = melt(max_mean_min_ba)
-
-max_mean_min_ba_melted = cbind(max_mean_min_ba_melted, rep(c("max", "mean", "min"), nrow(max_mean_min_ba_melted)/3))
-colnames(max_mean_min_ba_melted)[4] = "statistic"
-max_mean_min_ba_melted[,3] = as.numeric(max_mean_min_ba_melted[,3])
-
-ggplot(max_mean_min_ba_melted, aes(x=value, fill=Var1, colour=Var1)) + 
-  geom_density(alpha=0.25) + 
-  labs(x = "relative abundance", y = "frequency")
 
 #Relative abundances before and after oil pulling each day
 before_day_1 = classes[which(level_3[,"Oil.Pulling...Before..2..or.After..1.."] == 2 & level_3[,"Sampling.Day.."] == 1),]
@@ -103,34 +53,44 @@ all_abundances_sum_ba_day_31_melted = melt(all_abundances_sum_ba_each_day[,c(5,6
 all_abundances_sum_bb_day1_day_31_melted = melt(all_abundances_sum_ba_each_day[,c(1,5)])
 #all_abundances_sum_ba_each_day_melted = all_abundances_sum_ba_each_day_melted[-which(is.na(all_abundances_sum_ba_each_day_melted[,"value"])),-1]
 
+#Density plots showing relative abundances of CLASSES across all samples between different days
 plot1 <- ggplot(all_abundances_sum_ba_day_1_melted, aes(x=value, fill=Var2, colour=Var2, rm.na = TRUE)) + 
   geom_density(alpha=0.25) + 
+  scale_x_continuous(lim = c(0, 115000)) + 
+  scale_y_continuous(lim = c(0, 6*10^-5)) +
   labs(x = "Relative abundance", y = "Frequency", title = "Day 1") +
   theme(legend.title = element_blank())
 
 plot2 <- ggplot(all_abundances_sum_ba_day_16_melted, aes(x=value, fill=Var2, colour=Var2, rm.na = TRUE)) + 
   geom_density(alpha=0.25) + 
+  scale_x_continuous(lim = c(0, 115000)) + 
+  scale_y_continuous(lim = c(0, 6*10^-5)) +
   labs(x = "Relative abundance", y = "Frequency", title = "Day 16") +
   theme(legend.title = element_blank())
 
 plot3 <- ggplot(all_abundances_sum_ba_day_31_melted, aes(x=value, fill=Var2, colour=Var2, rm.na = TRUE)) + 
   geom_density(alpha=0.25) + 
+  scale_x_continuous(lim = c(0, 115000)) + 
+  scale_y_continuous(lim = c(0, 6*10^-5)) +
   labs(x = "Relative abundance", y = "Frequency", title = "Day 31") +
   theme(legend.title = element_blank())
 
 plot4 <- ggplot(all_abundances_sum_bb_day1_day_31_melted, aes(x=value, fill=Var2, colour=Var2, rm.na = TRUE)) + 
   geom_density(alpha=0.25) + 
+  scale_x_continuous(lim = c(0, 115000)) + 
+  scale_y_continuous(lim = c(0, 6*10^-5)) +
   labs(x = "Relative abundance", y = "Frequency", title = "Before Day 1 vs. Before Day 31") +
   theme(legend.title = element_blank())
 
 grid.arrange(plot1, plot2, plot3, plot4, ncol=2)
 
+#Statistical significance test
 wilcox.test(all_abundances_sum_ba_each_day[,1], all_abundances_sum_ba_each_day[,2], paired = FALSE, alternative = "less")$p.value
 wilcox.test(all_abundances_sum_ba_each_day[,3], all_abundances_sum_ba_each_day[,4], paired = FALSE)$p.value
 wilcox.test(all_abundances_sum_ba_each_day[,5], all_abundances_sum_ba_each_day[,6], paired = FALSE)$statistic
 wilcox.test(all_abundances_sum_ba_each_day[,1], all_abundances_sum_ba_each_day[,5], paired = FALSE)$p.value
 
-#Relative abundances with ranges along time
+#Relative abundances of CLASSES along time
 day_1 = classes[which(level_3[,"Sampling.Day.."] == 1),]
 day_16 = classes[which(level_3[,"Sampling.Day.."] == 16),]
 day_31 = classes[which(level_3[,"Sampling.Day.."] == 31),]
@@ -160,6 +120,7 @@ max_mean_min_melted = cbind(max_mean_min_melted, rep(c("max", "mean", "min"), nr
 colnames(max_mean_min_melted)[4] = "statistic"
 max_mean_min_melted[,3] = as.numeric(max_mean_min_melted[,3])
 
+#Line plot
 ggplot(max_mean_min_melted, aes(x=Var1, y=value, group=Var2, color=Var2, fill = "")) +
   coord_cartesian(clip = "off", expand = TRUE, xlim = c(1,4.25)) +
   geom_line(data = subset(max_mean_min_melted, statistic == "mean"), stat = "identity", size = 0.5) +
@@ -174,57 +135,11 @@ ggplot(max_mean_min_melted, aes(x=Var1, y=value, group=Var2, color=Var2, fill = 
         title = element_text(size = 16)) #legend.position="bottom", legend.text = element_text(size = 8)
   #geom_errorbar(aes(ymin=subset(max_mean_min_melted, statistic == "min"), ymax=subset(max_mean_min_melted, statistic == "max")), width=.2, position=position_dodge(0.05))
 
-##Density plot showing relative amounts of bacteria across all samples between different days
-
-#Sum of abundances of all bacteria over each sample
-day_1_sum = rowSums(day_1)
-day_16_sum = rowSums(day_16)
-day_31_sum = rowSums(day_31)
-all_abundances_sum = matrix(data = NA, nrow = max(dim(day_1)[1],dim(day_16)[1],dim(day_31)[1]), ncol = 3)
-all_abundances_sum[,1] = c(day_1_sum, rep(NA, (nrow(all_abundances_sum)-length(day_1_sum))))
-all_abundances_sum[,2] = c(day_16_sum, rep(NA, (nrow(all_abundances_sum)-length(day_16_sum))))
-all_abundances_sum[,3] = c(day_31_sum, rep(NA, (nrow(all_abundances_sum)-length(day_31_sum))))
-na.pass(all_abundances_sum)
-colnames(all_abundances_sum) = c("Day 1", "Day 16", "Day 31")
-all_abundances_sum_melted = melt(all_abundances_sum)[,-1]
-colnames(all_abundances_sum_melted) = c("Day", "value")
-
-ggplot(all_abundances_sum_melted, aes(x=value, fill=Day, colour=Day)) + 
-  geom_density(alpha=0.25) + 
-  labs(x = "relative abundance", y = "frequency")
-
-day_1_vs_day_16_p_value = wilcox.test(all_abundances_sum[,"Day 1"], all_abundances_sum[,"Day 16"], paired = TRUE)$p.value
-day_16_vs_day_31_p_value = wilcox.test(all_abundances_sum[,"Day 16"], all_abundances_sum[,"Day 31"], paired = TRUE)$p.value
-
-#Significance of differences of each CLASS between different days
-classes_day_p_values = matrix(data = NA, nrow = ncol(classes), ncol = 2)
-colnames(classes_day_p_values) = c("Day 16 vs. Day 1", "Day 31 vs. Day 16")
-rownames(classes_day_p_values) = colnames(classes)
-
-classes_day_p_values_test = function(){
-  for (class in 24:nrow(classes)){
-  classes_day_p_values[class,1] = wilcox.test(day_1[,class], day_16[,class], paired = FALSE)$p.value
-  classes_day_p_values[class,2] = wilcox.test(day_16[,class], day_31[,class], paired = FALSE)$p.value
-  return(classes_day_p_values)
-  }
-}
-
-write.csv(classes_day_p_values, "classes_day_p_values.csv")
-
-#Significance of differences of each GENUS between different days
+#Level 6 (genuses)
 level_6 = read.csv("level-6.csv")
 genuses = level_6[,-c(1,72,73,76)]
-day_1_genuses = genuses[which(level_6[,"Sampling.Day.."] == 1),]
-day_16_genuses = genuses[which(level_6[,"Sampling.Day.."] == 16),]
-day_31_genuses = genuses[which(level_6[,"Sampling.Day.."] == 31),]
-genuses_day_p_values = matrix(data = NA, nrow = ncol(genuses), ncol = 2)
-#all genuses
-for (genus in 1:72){
-  genuses_day_p_values[genus,1] = wilcox.test(day_1_genuses[,genus], day_16_genuses[,genus], paired = FALSE)$p.value
-  genuses_day_p_values[genus,2] = wilcox.test(day_16_genuses[,genus], day_31_genuses[,genus], paired = FALSE)$p.value
-  return(genuses_day_p_values)
-}
-#actinomyces, streptococcus, veillonella, trepenoma, porphyromonas, haemophilus, corynebacterium, fusobacterium
+
+#The relative abundances of the most abundant genuses
 genuses_subset = level_6[,c(7,9,18,31,43,46,63,70)]
 day_1_genuses_subset = genuses_subset[which(level_6[,"Sampling.Day.."] == 1),]
 day_16_genuses_subset = genuses_subset[which(level_6[,"Sampling.Day.."] == 16),]
@@ -249,8 +164,8 @@ colnames(genuses_subset_day_p_values) = c("Day 31 Before vs. Day 1 Before",
                                           "Day 1 Before vs. After", 
                                           "Day 16 Before vs. After", 
                                           "Day 31 Before vs. After")
-write.csv(genuses_subset_day_p_values, "genuses_subset_day_p_values.csv")
 
+#Statistical significance test for relative abundances of top GENUSES for each sample
 genuses_subset_day_W_values = matrix(data = NA, nrow = ncol(genuses_subset), ncol = 4)
 for (genus in 6:ncol(genuses_subset)){
   genuses_subset_day_W_values[genus,1] = wilcox.test(day_1_before_genuses_subset[,genus], day_31_before_genuses_subset[,genus], paired = FALSE)$p.value
@@ -264,9 +179,8 @@ colnames(genuses_subset_day_W_values) = c("Day 31 Before vs. Day 1 Before",
                                           "Day 1 Before vs. After", 
                                           "Day 16 Before vs. After", 
                                           "Day 31 Before vs. After")
-write.csv(genuses_subset_day_W_values, "genuses_subset_day_W_values.csv")
 
-#Balloon plot of relative abundance of top GENUSES for each sample
+#Balloon plot of relative abundances of top GENUSES for each sample (not used)
 genuses_sample_name = rbind(genuses[,-c(71,72)], colSums(genuses))
 genuses_sample_name = cbind(genuses_sample_name, c(as.character(level_6[,72]),NA))
 genuses_sample_name_ordered_by_sum = genuses_sample_name[,order(as.numeric(genuses_sample_name[55,]), decreasing = FALSE)]
@@ -276,6 +190,7 @@ colnames(genuses_sample_name_ordered_by_sum)[71] = "sample_name"
 genuses_sample_name_ordered_by_sum_melted = melt(genuses_sample_name_ordered_by_sum[,c(ncol(genuses_sample_name_ordered_by_sum)-(10:1),ncol(genuses_sample_name_ordered_by_sum))]) # -> top 10
 ggballoonplot(genuses_sample_name_ordered_by_sum_melted, x = "sample_name", y = "variable")
 
+#Heatmap of relative abundances of top GENUSES for each sample
 day_1_genuses_sum = colSums(day_1_genuses)
 day_16_genuses_sum = colSums(day_16_genuses)
 day_31_genuses_sum = colSums(day_31_genuses)
@@ -307,8 +222,7 @@ ggplot(all_days_genuses_sum_melted, mapping = aes(x = Var1, y = Var2, fill = val
   ylab("Genera") + 
   labs(fill = "Square root of relative abundance")
 
-
-##Beta
+##Beta diversity analysis
 bray_curtis = read.table("diversity_metrics/beta/bray_curtis-distance_matrix.tsv")
 generalized_unifrac = read.table("diversity_metrics/beta/generalized_unifrac-distance_matrix.tsv")
 jaccard = read.table("diversity_metrics/beta/jaccard-distance_matrix.tsv")
@@ -331,7 +245,7 @@ after.oil.pulling = c("515rcbc257", "515rcbc263", "515rcbc479", "515rcbc239", "5
                       "515rcbc464", "515rcbc240", "515rcbc470", "515rcbc252", "515rcbc480", "515rcbc270", "515rcbc258", "515rcbc247", "515rcbc271", 
                       "515rcbc472", "515rcbc259", "515rcbc265", "515rcbc466", "515rcbc478", "515rcbc253", "515rcbc493", "515rcbc241")
 
-#Scatter
+#PCoA
 pc.bray_curtis = prcomp(bray_curtis)
 pc.generalized_unifrac = prcomp(generalized_unifrac)
 pc.jaccard = prcomp(jaccard)
@@ -346,18 +260,19 @@ pc.unweighted_unifrac$sdev[1:3]^2/sum(pc.unweighted_unifrac$sdev^2)
 pc.weighted_normalized_unifrac$sdev[1:3]^2/sum(pc.weighted_normalized_unifrac$sdev^2)
 pc.weighted_unifrac$sdev[1:3]^2/sum(pc.weighted_unifrac$sdev^2)
 
-scree.plot = t(data.frame("Bray Curtis" = sum(pc.bray_curtis$sdev[1:3]^2/sum(pc.bray_curtis$sdev^2)),
+bar.plot = t(data.frame("Bray Curtis" = sum(pc.bray_curtis$sdev[1:3]^2/sum(pc.bray_curtis$sdev^2)),
                         "Generalized UniFrac" = sum(pc.generalized_unifrac$sdev[1:3]^2/sum(pc.generalized_unifrac$sdev^2)),
                         "Jaccard" = sum(pc.jaccard$sdev[1:3]^2/sum(pc.jaccard$sdev^2)),
                         "Unweighted UniFrac" = sum(pc.unweighted_unifrac$sdev[1:3]^2/sum(pc.unweighted_unifrac$sdev^2)),
                         "Weighted Normalized UniFrac" = sum(pc.weighted_normalized_unifrac$sdev[1:3]^2/sum(pc.weighted_normalized_unifrac$sdev^2)),
                         "Weighted UniFrac" = sum(pc.weighted_unifrac$sdev[1:3]^2/sum(pc.weighted_unifrac$sdev^2))))
 
-barplot(scree.plot[c(1,3,4),1], ylim = c(0,1), ylab = "Percentage variance explained", col = "black") + 
+barplot(bar.plot[c(1,3,4),1], ylim = c(0,1), ylab = "Percentage variance explained", col = "black") + 
   grid(NA, 5, lty = 1, col = "grey", lwd = 0.5) #scree plot
 
 print(sprintf("The percentage variance explained is %3f", pc.bray_curtis$sdev[1:3]^2/sum(pc.bray_curtis$sdev^2)))
 
+#Scatter plots for beta metrics
 pc.bray_curtis.grouped = data.frame(cbind(pc.bray_curtis$x[,1:3], ba = rep(NA, nrow(pc.bray_curtis$x)), group = rep(NA, nrow(pc.bray_curtis$x)), colour = rep(NA, nrow(pc.bray_curtis$x))))
 pc.generalized_unifrac.grouped = data.frame(cbind(pc.generalized_unifrac$x[,1:3], ba = rep(NA, nrow(pc.generalized_unifrac$x)), group = rep(NA, nrow(pc.generalized_unifrac$x)), colour = rep(NA, nrow(pc.generalized_unifrac$x))))
 pc.jaccard.grouped = data.frame(cbind(pc.jaccard$x[,1:3], ba = rep(NA, nrow(pc.jaccard$x)), group = rep(NA, nrow(pc.jaccard$x)), colour = rep(NA, nrow(pc.jaccard$x))))
@@ -480,9 +395,7 @@ dev.off()
 
 plotrgl()
 
-#plot_ly(data = pc.bray_curtis.grouped, x = ~ PC1, y = ~ PC2, z = ~ PC3, type = "scatter3d", mode = "markers", color = ~ group, colors = c("red", "green", "blue"))
-
-#Box
+#Box plots for distributions of beta metrics
 bray_curtis.grouped = cbind(bray_curtis, ba = rep(NA, nrow(pc.bray_curtis$x)),group = rep(NA, nrow(bray_curtis)), day = rep(NA, nrow(bray_curtis)))
 generalized_unifrac.grouped = cbind(generalized_unifrac, ba = rep(NA, nrow(pc.generalized_unifrac$x)), group = rep(NA, nrow(generalized_unifrac)), day = rep(NA, nrow(generalized_unifrac)))
 jaccard.grouped = cbind(jaccard, ba = rep(NA, nrow(pc.jaccard$x)), group = rep(NA, nrow(jaccard)), day = rep(NA, nrow(jaccard)))
@@ -590,6 +503,7 @@ grid.arrange(bray_curtis.box,jaccard.box,
              unweighted_unifrac.box,  
              ncol = 2) # generalized_unifrac.box, weighted_normalized_unifrac.box, weighted_unifrac.box,
 
+#Mann-Whitney U tests for all beta metrics
 compare_means(value ~ day, bray_curtis.grouped.melted, method = "wilcox.test", group.by = "ba")
 compare_means(value ~ day, generalized_unifrac.grouped.melted, method = "wilcox.test", group.by = "ba")
 compare_means(value ~ day, jaccard.grouped.melted, method = "wilcox.test", group.by = "ba")
@@ -603,18 +517,3 @@ compare_means(value ~ group, jaccard.grouped.melted, method = "wilcox.test", gro
 compare_means(value ~ group, unweighted_unifrac.grouped.melted, method = "wilcox.test", group.by = "day")
 compare_means(value ~ group, weighted_normalized_unifrac.grouped.melted, method = "wilcox.test", group.by = "day")
 compare_means(value ~ group, weighted_unifrac.grouped.melted, method = "wilcox.test", group.by = "day")
-
-#boxplot(as.numeric(bray_curtis[intersect(sampling.day.1, before.oil.pulling),1]))
-
-
-
-
-
-d = melt(c(level_6[,2:71], level_6[,75]), id.vars="Sampling.Day..")
-
-# Everything on the same plot
-
-variable = colnames(level_6)[75]
-
-ggplot(d, aes_string(x=colnames(level_6)[75], y = colnames(level_6)[2:71], group = colnames(level_6)[75])) + 
-  geom_line(aes_string(colour=colnames(level_6)[75]))
