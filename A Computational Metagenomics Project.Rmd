@@ -29,7 +29,7 @@ First, work with level 3 (class-level) data
 
 ```{r, results = 'hide'}
 # Read in file
-level_3 = read.csv("level-3.csv")
+level_3 = read.csv("data/level-3.csv")
 classes = as.matrix(level_3[,-c(1,26:30)])
 
 classes
@@ -161,7 +161,7 @@ max_mean_min[6,] = apply(day_16, 2, min)
 max_mean_min[7,] = apply(day_31, 2, max)
 max_mean_min[8,] = apply(day_31, 2, mean)
 max_mean_min[9,] = apply(day_31, 2, min)
-write.csv(max_mean_min, "max_mean_min.csv")
+write.csv(max_mean_min, "data/max_mean_min.csv")
 
 # Transform (melt) summary statistics into the required form, merge into a matrix for easier handling
 max_mean_min_melted = melt(max_mean_min)
@@ -191,7 +191,7 @@ Now work with level 6 (genus-level) data
 
 ```{r, results = 'hide'}
 # Read in file
-level_6 = read.csv("level-6.csv")
+level_6 = read.csv("data/level-6.csv")
 genuses = level_6[,-c(1,72,73,76)]
 
 #The relative abundances of (a subset containing) the most abundant genuses
