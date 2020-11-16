@@ -1,7 +1,7 @@
 ---
-title: "A Computational Metagenomic Project"
+title: "A Computational Metagenomics Project"
 author: "Adrian Lee"
-date: "15 November 2020"
+date: "1 May 2020"
 output: html_document
 ---
 
